@@ -1,12 +1,14 @@
 package main
 
 import (
+	"Go-RestApi/db"
 	"Go-RestApi/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func main() {
+	db.InitDB()
 	server := gin.Default()
 
 	server.GET("/events", getEvents)
@@ -34,6 +36,8 @@ func createEvents(context *gin.Context) {
 	//하기의 코드는 추후 DB 연결 후 바꿀 예정
 	event.ID = 1
 	event.UserID = 1
+
+	event.Save()
 
 	context.JSON(http.StatusCreated, gin.H{"message": "Success Create", "event": event})
 }

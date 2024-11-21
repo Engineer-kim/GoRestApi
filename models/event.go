@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"Go-RestApi/db"
+	"time"
+)
 
 type Event struct {
 	ID          int
@@ -13,8 +16,23 @@ type Event struct {
 
 var events = []Event{}
 
-func (receiverEvent Event) Save() {
-	events = append(events, receiverEvent)
+func (receiverEvent Event) Save() error {
+	query :=
+		`INSERT INTO events(name, description, location, user_id) 
+		 VALUES (?, ?, ?, ?)`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(receiverEvent.Name, receiverEvent.Description, receiverEvent.Location, receiverEvent.UserID)
+	if err != nil {
+		return err
+	}
+	id, err := result.LastInsertId()
+	receiverEvent.ID = int(id)
+	//events = append(events, receiverEvent)
+	return err
 }
 
 func GetAllEvents() []Event {
