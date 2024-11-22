@@ -90,3 +90,27 @@ func updateEvent(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"message": "Success Update"})
 }
+
+func deleteEvent(context *gin.Context) {
+	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could Not parse event id"})
+		return
+	}
+
+	event, err := models.GetEventByID(eventId) //삭제할 이벤트가 DB에 있는지 체크 하는 부분
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could Not Fetch eventData"})
+		return
+	}
+	// 삭제 할 이벤트아이디(식별자)를 안보내도되는 이유는
+	//event, err := models.GetEventByID(eventId) 이미 여기서 이벤트 아이디를 비롯한 정보를 담아서 보내고 있기 때문
+	err = event.Delete()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Delete Data Fail"})
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Success Delete"})
+
+}
