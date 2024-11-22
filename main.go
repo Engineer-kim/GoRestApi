@@ -5,6 +5,7 @@ import (
 	"Go-RestApi/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -12,6 +13,7 @@ func main() {
 	server := gin.Default()
 
 	server.GET("/events", getEvents)
+	server.GET("/event/:id", getEvent)
 	server.POST("/events", createEvents)
 	server.Run(":8080")
 }
@@ -25,6 +27,21 @@ func getEvents(context *gin.Context) {
 	}
 	// HTTP 요청에 대한 응답을 직접 처리하는 역할하기때문에 리턴 안해도됨
 	context.JSON(http.StatusOK, events) //json  형태로 보내겟다 리턴을 안해도됨
+}
+
+func getEvent(context *gin.Context) {
+	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	event, err := models.GetEventByID(eventId)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could Not parse event id"})
+		return
+	}
+
+	context.JSON(http.StatusOK, event)
 }
 
 func createEvents(context *gin.Context) {
