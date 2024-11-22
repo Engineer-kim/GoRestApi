@@ -12,4 +12,5 @@ func RegisterRoutes(server *gin.Engine) {
 	server.DELETE("/event/:id", deleteEvent) //데이터 삭제
 
 	server.POST("/signUp", signUp) //유저 회원가입
+	server.POST("/login", logIn)   //유저 로그인
 }

@@ -8,3 +8,8 @@ func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
+
+func CheckPasswordHash(password, hashPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
+	return err == nil //암호가 유효하면 True 리턴 아니라면 False 리턴
+}

@@ -3,6 +3,8 @@ package models
 import (
 	"Go-RestApi/db"
 	"Go-RestApi/utils"
+	"errors"
+	"log"
 )
 
 type User struct {
@@ -39,4 +41,22 @@ func (userReceiver User) Save() error {
 
 	userReceiver.ID = userId
 	return err
+}
+
+func (userReceiver User) ValidateCredential() error {
+	query := `SELECT email, password FROM users WHERE email = ?`
+	row := db.DB.QueryRow(query, userReceiver.Email)
+
+	var retrievedPassword string
+	err := row.Scan(&retrievedPassword)
+	if err != nil {
+		log.Println("err::", err.Error())
+		return errors.New("Invalid Credential")
+	}
+
+	passwordIsValid := utils.CheckPasswordHash(userReceiver.Password, retrievedPassword)
+	if !passwordIsValid {
+		return errors.New("Invalid Credential")
+	}
+	return nil
 }
