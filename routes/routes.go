@@ -10,4 +10,6 @@ func RegisterRoutes(server *gin.Engine) {
 	server.POST("/event", createEvents)      //데이터 생성
 	server.PUT("/event/:id", updateEvent)    //데이터 수정
 	server.DELETE("/event/:id", deleteEvent) //데이터 삭제
+
+	server.POST("/signUp", signUp) //유저 회원가입
 }
