@@ -44,11 +44,11 @@ func (userReceiver User) Save() error {
 }
 
 func (userReceiver User) ValidateCredential() error {
-	query := `SELECT email, password FROM users WHERE email = ?`
+	query := `SELECT id,  password FROM users WHERE email = ?`
 	row := db.DB.QueryRow(query, userReceiver.Email)
 
 	var retrievedPassword string
-	err := row.Scan(&retrievedPassword)
+	err := row.Scan(&userReceiver.ID, &retrievedPassword)
 	if err != nil {
 		log.Println("err::", err.Error())
 		return errors.New("Invalid Credential")
