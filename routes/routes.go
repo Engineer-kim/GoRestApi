@@ -5,7 +5,8 @@ import (
 )
 
 func RegisterRoutes(server *gin.Engine) {
-	server.GET("/events", getEvents)
-	server.GET("/event/:id", getEvent)
-	server.POST("/events", createEvents)
+	server.GET("/events", getEvents)      //다건 조회
+	server.GET("/event/:id", getEvent)    //단건 조회
+	server.POST("/event", createEvents)   //데이터 생성
+	server.PUT("/event/:id", updateEvent) //데이터 수정
 }

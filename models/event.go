@@ -7,12 +7,12 @@ import (
 )
 
 type Event struct {
-	ID          int
+	ID          int64
 	Name        string    `binding:"required"`
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	DateTime    time.Time `binding:"required"`
-	UserID      int
+	UserID      int64
 }
 
 var events = []Event{}
@@ -34,7 +34,7 @@ func (receiverEvent Event) Save() error {
 	}
 	//마지막으로 삽입된 레코드의 ID를 가져옴. 이 ID는 보통 자동 증가하는 기본 키(Auto Increment)
 	id, err := result.LastInsertId()
-	receiverEvent.ID = int(id)
+	receiverEvent.ID = id
 	//events = append(events, receiverEvent)
 	return err
 }
@@ -74,4 +74,26 @@ func GetEventByID(id int64) (*Event, error) {
 	}
 
 	return &event, nil
+}
+
+func (event Event) UpdateEvent() error {
+	query := `UPDATE events SET 
+                  name = ?, 
+                  description = ?, 
+                  location = ?,
+                  dateTime = ?
+              WHERE id = ?`
+	//Prepare 문이란 쿼리 실행 계획이고( 준비된 쿼리에 대한 최적의 실행 계획을 미리 생성해 놓기에 성능 향상에 도움이 됨)
+	//SQL 인젝션 방지가능 ==> ?를 사용하여 값을 바인딩 하기때문(악의 적인 쿼리 전체를 하나의 문자열로 인식)
+	//SELECT * FROM users WHERE username = 'admin OR 1=1';  ==> 'admin OR 1=1' 전체를 값이 아닌 스트링으로 인식 하기때문
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		println(err.Error())
+		return err
+	}
+	defer stmt.Close()
+
+	//쿼리의 ? 부분에 값 바인딩 하는 부분
+	_, err = stmt.Exec(event.Name, event.Description, event.Location, event.DateTime, event.ID)
+	return err
 }

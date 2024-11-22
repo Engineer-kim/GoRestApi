@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+/**각 엔드포인트 별 세부로직*/
+
 func getEvents(context *gin.Context) {
 	events, err := models.GetAllEvents()
 	if err != nil {
@@ -57,4 +59,34 @@ func createEvents(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusCreated, gin.H{"message": "Success Create", "event": event})
+}
+
+func updateEvent(context *gin.Context) {
+	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could Not parse event id"})
+		return
+	}
+
+	_, err = models.GetEventByID(eventId) //수정할 이벤트가 DB에 있는지 체크 하는 부분
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could Not Fetch eventData"})
+		return
+	}
+
+	var updatedEvent models.Event
+	err = context.ShouldBindJSON(&updatedEvent) //클라이언트에서 받아온 정보를 UpdateEvent 에 할당
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Parsing Error data(During Update)"})
+		return
+	}
+
+	updatedEvent.ID = eventId
+	err = updatedEvent.UpdateEvent()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Update Data Fail"})
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Success Update"})
 }
