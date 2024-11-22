@@ -14,7 +14,7 @@ type User struct {
 }
 
 func (userReceiver User) Save() error {
-	query := `INSERT INTO s (email, password) VALUES (?, ?)`
+	query := `INSERT INTO users (email, password) VALUES (?, ?)`
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
 		panic("Fail to insert userData")
@@ -43,7 +43,7 @@ func (userReceiver User) Save() error {
 	return err
 }
 
-func (userReceiver User) ValidateCredential() error {
+func (userReceiver *User) ValidateCredential() error {
 	query := `SELECT id,  password FROM users WHERE email = ?`
 	row := db.DB.QueryRow(query, userReceiver.Email)
 

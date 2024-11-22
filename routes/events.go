@@ -2,6 +2,7 @@ package routes
 
 import (
 	"Go-RestApi/models"
+	"Go-RestApi/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -36,20 +37,34 @@ func getEvent(context *gin.Context) {
 }
 
 func createEvents(context *gin.Context) {
+	token := context.Request.Header.Get("Authorization")
+
+	if token == "" {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "No Authorization Header found"})
+		return
+	}
+
+	userId, err := utils.VerifyToken(token)
+
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorized"})
+		return
+	}
+
 	var event models.Event
 	// HTTP 요청 바디의 JSON 데이터를 event 구조체에 바인딩합니다.
 	// &event는 event 구조체의 메모리 주소를 의미하며,
 	// ShouldBindJSON 함수는 이 주소를 통해 JSON 데이터를 구조체에 직접 채워 넣습니다.
 	// 즉, 클라이언트에서 전달된 JSON 데이터의 각 필드가 event 구조체의 해당 필드에 매핑됩니다.
-	err := context.ShouldBindJSON(&event)
+	err = context.ShouldBindJSON(&event)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Parsing Error data"})
 		return
 	}
 	//하기의 코드는 추후 DB 연결 후 바꿀 예정
-	event.ID = 1
-	event.UserID = 1
+	//event.ID = 1
+	event.UserID = userId
 
 	err = event.Save()
 	if err != nil {
