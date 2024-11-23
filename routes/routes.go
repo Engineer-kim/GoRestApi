@@ -14,6 +14,8 @@ func RegisterRoutes(server *gin.Engine) {
 	authenticated.POST("/event", createEvents)
 	authenticated.PUT("/event/:id", updateEvent)
 	authenticated.DELETE("/event/:id", deleteEvent)
+	authenticated.POST("/events/:id/register", registerForEvent)
+	authenticated.DELETE("/events/:id/register", cancelRegistrationForEvent)
 
 	//server.POST("/event", createEvents)      //데이터 생성
 	//server.PUT("/event/:id", updateEvent)    //데이터 수정
