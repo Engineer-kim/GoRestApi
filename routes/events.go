@@ -2,7 +2,6 @@ package routes
 
 import (
 	"Go-RestApi/models"
-	"Go-RestApi/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -37,31 +36,19 @@ func getEvent(context *gin.Context) {
 }
 
 func createEvents(context *gin.Context) {
-	token := context.Request.Header.Get("Authorization")
-
-	if token == "" {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": "No Authorization Header found"})
-		return
-	}
-
-	userId, err := utils.VerifyToken(token)
-
-	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorized"})
-		return
-	}
 
 	var event models.Event
 	// HTTP 요청 바디의 JSON 데이터를 event 구조체에 바인딩합니다.
 	// &event는 event 구조체의 메모리 주소를 의미하며,
 	// ShouldBindJSON 함수는 이 주소를 통해 JSON 데이터를 구조체에 직접 채워 넣습니다.
 	// 즉, 클라이언트에서 전달된 JSON 데이터의 각 필드가 event 구조체의 해당 필드에 매핑됩니다.
-	err = context.ShouldBindJSON(&event)
+	err := context.ShouldBindJSON(&event)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Parsing Error data"})
 		return
 	}
+	userId := context.GetInt64("userId")
 	//하기의 코드는 추후 DB 연결 후 바꿀 예정
 	//event.ID = 1
 	event.UserID = userId
@@ -83,10 +70,16 @@ func updateEvent(context *gin.Context) {
 		return
 	}
 
-	_, err = models.GetEventByID(eventId) //수정할 이벤트가 DB에 있는지 체크 하는 부분
+	userId := context.GetInt64("userId")
+	event, err := models.GetEventByID(eventId) //수정할 이벤트가 DB에 있는지 체크 하는 부분
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could Not Fetch eventData"})
+		return
+	}
+
+	if event.UserID != userId {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized To Update"})
 		return
 	}
 
@@ -113,12 +106,19 @@ func deleteEvent(context *gin.Context) {
 		return
 	}
 
+	userId := context.GetInt64("userId")
 	event, err := models.GetEventByID(eventId) //삭제할 이벤트가 DB에 있는지 체크 하는 부분
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could Not Fetch eventData"})
 		return
 	}
+
+	if event.UserID != userId {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized to Delete"})
+		return
+	}
+
 	// 삭제 할 이벤트아이디(식별자)를 안보내도되는 이유는
 	//event, err := models.GetEventByID(eventId) 이미 여기서 이벤트 아이디를 비롯한 정보를 담아서 보내고 있기 때문
 	err = event.Delete()
